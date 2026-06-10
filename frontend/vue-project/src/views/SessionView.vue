@@ -1,4 +1,9 @@
 <template>
+  <SessionCodeModal
+    :show="showCodeModal"
+    :code="sessionCode"
+    @close="showCodeModal = false"
+  />
   <div class="session">
     <header class="header">
       <div class="logo">PokerUFF</div>
@@ -53,6 +58,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import SessionCodeModal from '@/components/SessionCodeModal.vue'
 
 const route = useRoute()
 const SESSION_CODE = route.params.code
@@ -66,6 +72,9 @@ const state = ref({
 const sessionName = ref('Sessão')
 const isAdmin = ref(false)
 const cards = [1, 2, 3, 5, 8, 13]
+
+const showCodeModal = ref(false)
+const sessionCode = ref('')
 
 function connect() {
   ws.value = new WebSocket(`ws://127.0.0.1:8000/ws/${SESSION_CODE}`)
@@ -97,6 +106,13 @@ function leaveSession() {
 
 onMounted(() => {
   connect()
+
+  if (localStorage.getItem('showCodeModal') === 'true') {
+    sessionCode.value = localStorage.getItem('sessionCode')
+    showCodeModal.value = true
+    localStorage.removeItem('showCodeModal')
+    localStorage.removeItem('sessionCode')
+  }
 })
 </script>
 

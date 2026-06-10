@@ -40,7 +40,7 @@
                 @click="joinSession"
               >
                 <img
-                  src="@/assets/img/leave-icon.svg"
+                  src="@/assets/img/enter-icon.svg"
                   alt="Entrar"
                 />
               </button>
@@ -76,7 +76,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import Divider from '@/components/divider.vue'
+import Divider from '@/components/Divider.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
 
 const router = useRouter()
@@ -171,6 +171,10 @@ const createSession = async () => {
     })
 
     localStorage.setItem('username', createName.value)
+
+    localStorage.setItem('showCodeModal', 'true')
+    localStorage.setItem('sessionCode', code)
+    
     router.push(`/session/${code}`)
 
   } catch (err) {
