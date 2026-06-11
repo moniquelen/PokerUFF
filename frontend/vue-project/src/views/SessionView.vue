@@ -4,6 +4,12 @@
     :code="sessionCode"
     @close="showCodeModal = false"
   />
+
+  <UserNameModal
+    :show="showUserNameModal"
+    @confirm="setUsername"
+  />
+
   <div class="session">
     <header class="header">
       <div class="logo">PokerUFF</div>
@@ -56,31 +62,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SessionCodeModal from '@/components/SessionCodeModal.vue'
+import UserNameModal from '@/components/UserNameModal.vue'
 
 const route = useRoute()
 const SESSION_CODE = route.params.code
-const username = localStorage.getItem('username') || 'anon'
+
+const username = ref('')
 const ws = ref(null)
+
 const state = ref({
   participants: [],
   votes: {},
-  revealed: false
+  revealed: false,
+  admin: null,
+  name: ''
 })
+
 const sessionName = ref('Sessão')
 const isAdmin = ref(false)
+
 const cards = [1, 2, 3, 5, 8, 13]
 
 const showCodeModal = ref(false)
 const sessionCode = ref('')
+const showUserNameModal = ref(false)
 
 function connect() {
   ws.value = new WebSocket(`ws://127.0.0.1:8000/ws/${SESSION_CODE}`)
 
   ws.value.onopen = () => {
-    ws.value.send(JSON.stringify({ type: 'sync' }))
+    ws.value.send(JSON.stringify({
+      type: 'sync'
+    }))
   }
 
   ws.value.onmessage = (event) => {
@@ -88,30 +104,96 @@ function connect() {
 
     if (msg.type === 'state') {
       state.value = msg.data
+
+      sessionName.value = msg.data.name
+      isAdmin.value = username.value === msg.data.admin
     }
   }
 }
 
+async function joinSession(name) {
+  const res = await fetch('http://127.0.0.1:8000/session/join', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      code: SESSION_CODE,
+      name
+    })
+  })
+
+  if (!res.ok) {
+    alert('Erro ao entrar na sessão')
+    return
+  }
+
+  if (!ws.value) {
+    connect()
+  }
+}
+
+async function setUsername(name) {
+  username.value = name
+
+  showUserNameModal.value = false
+
+  await joinSession(name)
+}
+
 function vote(value) {
+  if (!ws.value) return
+
   ws.value.send(JSON.stringify({
     type: 'vote',
-    user: username,
+    user: username.value,
     value
   }))
 }
 
 function leaveSession() {
-  ws.value.close()
+  if (ws.value) {
+    ws.value.close()
+    ws.value = null
+  }
 }
 
-onMounted(() => {
-  connect()
+onMounted(async () => {
+  const showSessionCodeModal =
+    localStorage.getItem('showCodeModal') === 'true'
 
-  if (localStorage.getItem('showCodeModal') === 'true') {
+  if (showSessionCodeModal) {
     sessionCode.value = localStorage.getItem('sessionCode')
     showCodeModal.value = true
     localStorage.removeItem('showCodeModal')
     localStorage.removeItem('sessionCode')
+  }
+
+  const res = await fetch(`http://127.0.0.1:8000/session/${SESSION_CODE}`)
+
+  if (!res.ok) {
+    return
+  }
+
+  const data = await res.json()
+  sessionName.value = data.name
+  const pendingAdminName = localStorage.getItem('pendingAdminName')
+
+  if (pendingAdminName) {
+    username.value = pendingAdminName
+    isAdmin.value = true
+
+    localStorage.removeItem('pendingAdminName')
+    await joinSession(pendingAdminName)
+
+  } else {
+    showUserNameModal.value = true
+  }
+})
+
+onUnmounted(() => {
+  if (ws.value) {
+    ws.value.close()
   }
 })
 </script>

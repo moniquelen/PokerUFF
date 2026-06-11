@@ -36,6 +36,7 @@
                 class="input"
               />
               <button
+                type="button"
                 class="join-button"
                 @click="joinSession"
               >
@@ -80,57 +81,21 @@ import Divider from '@/components/Divider.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
 
 const router = useRouter()
-const joinName = ref('')
 const joinCode = ref('')
 const createName = ref('')
 const sessionName = ref('')
 
-// JOIN SESSION
-const joinSession = async () => {
-
+const joinSession = () => {
   if (!joinCode.value) {
     alert('Digite o código da sessão')
     return
   }
 
-  const username = prompt('Digite seu nome')
+  const code = joinCode.value.toUpperCase()
 
-  if (!username) return
-
-  joinName.value = username
-
-  try {
-
-    const code = joinCode.value.toUpperCase()
-
-    const res = await fetch('http://127.0.0.1:8000/session/join', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        code,
-        name: joinName.value
-      })
-    })
-
-    const data = await res.json()
-
-    if (!res.ok || data.error) {
-      alert(data.error || 'Erro ao entrar na sessão')
-      return
-    }
-
-    localStorage.setItem('username', joinName.value)
-
-    router.push(`/session/${code}`)
-
-  } catch (err) {
-    alert('Erro ao conectar com o servidor')
-  }
+  router.push(`/session/${code}`)
 }
 
-// CREATE SESSION
 const createSession = async () => {
 
   if (!createName.value || !sessionName.value) {
@@ -146,7 +111,8 @@ const createSession = async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        name: sessionName.value
+        session_name: sessionName.value,
+        admin_name: createName.value
       })
     })
 
@@ -159,22 +125,10 @@ const createSession = async () => {
 
     const code = data.code
 
-    await fetch('http://127.0.0.1:8000/session/join', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        code,
-        name: createName.value
-      })
-    })
-
-    localStorage.setItem('username', createName.value)
-
     localStorage.setItem('showCodeModal', 'true')
     localStorage.setItem('sessionCode', code)
-    
+    localStorage.setItem('pendingAdminName', createName.value)
+
     router.push(`/session/${code}`)
 
   } catch (err) {

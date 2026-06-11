@@ -4,16 +4,17 @@
     class="overlay"
   >
     <div class="modal">
+      <div class="text-container">
+        <h1>
+          Sessão criada com sucesso! 🎉
+        </h1>
 
-      <h1>
-        Sessão criada com sucesso! 🎉
-      </h1>
-      <p>
-        Compartilhe com a equipe o código abaixo:
-      </p>
+        <p>
+          Compartilhe com a equipe o código abaixo:
+        </p>
+      </div>
 
       <div class="code-container">
-
         <span class="code">
           {{ code }}
         </span>
@@ -23,16 +24,13 @@
           @click="copyCode"
         >
           <i class="mdi mdi-content-copy"></i>
-
           <span
             v-if="showTooltip"
             class="tooltip"
           >
             Código copiado
           </span>
-
         </button>
-
       </div>
 
       <div class="start-button">
@@ -82,7 +80,7 @@ const copyCode = async () => {
 .overlay{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0,0,0,.8);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -102,7 +100,7 @@ const copyCode = async () => {
 
 h1{
   color: white;
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 600;
   text-align: center;
   margin: 10px 0px;
