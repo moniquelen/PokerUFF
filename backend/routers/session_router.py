@@ -8,7 +8,8 @@ from services.session_service import (
     save_vote,
     reveal_votes,
     reset_votes,
-    get_session_state
+    get_session_state,
+    leave_session_service
 )
 from websocket.connection_manager import ConnectionManager
 
@@ -21,13 +22,34 @@ manager = ConnectionManager()
 
 @router.post("/session/create")
 def create_session(data: CreateSessionRequest):
-    return create_session_service(data.name)
-
+    return create_session_service(
+        data.session_name,
+        data.admin_name
+    )
 
 @router.post("/session/join")
 def join_session(data: JoinSessionRequest):
     return join_session_service(data.code, data.name)
 
+@router.get("/session/{code}")
+def get_session(code: str):
+
+    if code not in sessions:
+        return {"error": "Sessão não encontrada"}
+
+    return {
+        "name": sessions[code]["name"],
+        "admin": sessions[code]["admin"]
+    }
+
+@router.post("/session/leave")
+def leave_session(data: JoinSessionRequest):
+
+    leave_session_service(data.code, data.name)
+
+    return {
+        "message": "Saiu da sessão"
+    }
 
 # =========================
 # WebSocket
@@ -35,9 +57,9 @@ def join_session(data: JoinSessionRequest):
 
 @router.websocket("/ws/{code}")
 async def websocket_endpoint(websocket: WebSocket, code: str):
+
     print("Conectando ao WS...")
 
-    # valida sessão antes de conectar
     if code not in sessions:
         await websocket.close()
         return
@@ -45,8 +67,8 @@ async def websocket_endpoint(websocket: WebSocket, code: str):
     await manager.connect(code, websocket)
     print("WS conectado com sucesso!")
 
-    # envia estado inicial
     state = get_session_state(code)
+
     await websocket.send_text(json.dumps({
         "type": "state",
         "data": state
@@ -57,50 +79,56 @@ async def websocket_endpoint(websocket: WebSocket, code: str):
             try:
                 data = await websocket.receive_text()
             except:
-                break  # conexão pode ter caído
-
-            # tenta converter JSON
+                break
             try:
                 message = json.loads(data)
             except:
                 continue
 
-            # pega tipo da mensagem com segurança
             msg_type = message.get("type")
             user = message.get("user")
 
-            # =========================
-            # regras de negócio
-            # =========================
-
             if msg_type == "vote":
+
                 value = message.get("value")
 
-                # validações básicas
                 if not user or not isinstance(value, int):
                     continue
 
                 save_vote(code, user, value)
 
             elif msg_type == "reveal":
-                reveal_votes(code)
+                if user == sessions[code]["admin"]:
+                    reveal_votes(code)
 
             elif msg_type == "reset":
-                reset_votes(code)
+                if user == sessions[code]["admin"]:
+                    reset_votes(code)
 
             elif msg_type == "sync":
                 pass
 
+            elif msg_type == "get_admin":
+                await websocket.send_text(json.dumps({
+                    "type": "admin",
+                    "admin": sessions[code]["admin"]
+                }))
+
+                continue
+
             # =========================
-            # broadcast do estado
+            # BROADCAST DO ESTADO
             # =========================
 
             state = get_session_state(code)
 
-            await manager.broadcast(code, json.dumps({
-                "type": "state",
-                "data": state
-            }))
+            await manager.broadcast(
+                code,
+                json.dumps({
+                    "type": "state",
+                    "data": state
+                })
+            )
 
     except WebSocketDisconnect:
         print("WS desconectado")
