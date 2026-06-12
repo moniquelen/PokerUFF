@@ -65,9 +65,7 @@ const showTooltip = ref(false)
 const copyCode = async () => {
 
   await navigator.clipboard.writeText(props.code)
-
   showTooltip.value = true
-
   setTimeout(() => {
     showTooltip.value = false
   }, 1500)
@@ -81,10 +79,10 @@ const copyCode = async () => {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.8);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
 .modal{
@@ -117,44 +115,44 @@ p{
 .code-container{
   width: 320px;
   height: 60px;
-  background:#121212;
-  border-radius:26px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 24px;
-  position:relative;
+  background: #121212;
+  border-radius: 26px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  position: relative;
 }
 
 .code{
-  color:white;
-  font-size:24px;
-  font-weight:600;
-  letter-spacing:4px;
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 4px;
 }
 
 .copy-button{
-  background:none;
-  border:none;
-  cursor:pointer;
-  position:relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
 }
 
 .mdi{
-  color:#565656;
-  font-size:26px;
+  color: #565656;
+  font-size: 26px;
 }
 
 .tooltip{
-  position:absolute;
-  top:40px;
-  right:-20px;
-  background:#565656;
-  color:white;
-  padding:6px 10px;
-  border-radius:12px;
-  font-size:12px;
-  white-space:nowrap;
+  position: absolute;
+  top: 40px;
+  right: -20px;
+  background: #565656;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .start-button{

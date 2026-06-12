@@ -99,6 +99,18 @@ def get_session_state(code: str):
         "name": session["name"]
     }
 
+def leave_session_service(code: str, name: str):
+
+    session = sessions.get(code)
+
+    if not session:
+        return
+
+    if name in session["participants"]:
+        session["participants"].remove(name)
+
+    session["votes"].pop(name, None)
+
 # =======================
 # Configuração dos votos
 # =======================

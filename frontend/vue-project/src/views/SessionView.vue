@@ -12,17 +12,52 @@
 
   <div class="session">
     <header class="header">
-      <div class="logo">PokerUFF</div>
-      <div class="session-title">
-        {{ sessionName }}
+      <Divider class="header-divider" />
+      <div class="logo-area">
+        <img
+          src="@/assets/img/logo.svg"
+          alt="PokerUFF"
+          class="logo"
+        />
+        <span class="logo-text">
+          | PokerUFF
+        </span>
       </div>
-      <button class="share-btn">📤</button>
+
+      <div class="header-right">
+        <div class="session-title">
+          {{ sessionName }}
+        </div>
+        <div class="share-wrapper">
+          <button
+            class="share-btn"
+            @click="copyCode"
+          >
+            <i class="mdi mdi-share-variant"></i>
+          </button>
+          <div
+            v-if="copied"
+            class="copy-tooltip"
+          >
+            Código da sessão copiado
+          </div>
+        </div>
+      </div>
     </header>
 
     <div class="content">
-      <button class="leave-btn" @click="leaveSession">
-        Sair
-      </button>
+      <div class="leave-wrapper">
+        <button
+          class="leave-btn"
+          @click="leaveSession"
+        >
+          <i class="mdi mdi-exit-to-app"></i>
+        </button>
+
+        <span class="leave-label">
+          Sair
+        </span>
+      </div>
       <h1 class="title">Clique em um cartão para votar</h1>
       <div class="cards">
         <div
@@ -63,11 +98,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import Divider from '@/components/Divider.vue'
 import SessionCodeModal from '@/components/SessionCodeModal.vue'
 import UserNameModal from '@/components/UserNameModal.vue'
 
 const route = useRoute()
+const router = useRouter()
 const SESSION_CODE = route.params.code
 
 const username = ref('')
@@ -89,6 +126,15 @@ const cards = [1, 2, 3, 5, 8, 13]
 const showCodeModal = ref(false)
 const sessionCode = ref('')
 const showUserNameModal = ref(false)
+const copied = ref(false)
+
+async function copyCode() {
+  await navigator.clipboard.writeText(SESSION_CODE)
+  copied.value = true
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
+}
 
 function connect() {
   ws.value = new WebSocket(`ws://127.0.0.1:8000/ws/${SESSION_CODE}`)
@@ -151,11 +197,25 @@ function vote(value) {
   }))
 }
 
-function leaveSession() {
+async function leaveSession() {
+
+  await fetch('http://127.0.0.1:8000/session/leave', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      code: SESSION_CODE,
+      name: username.value
+    })
+  })
+
   if (ws.value) {
     ws.value.close()
     ws.value = null
   }
+
+  router.push('/')
 }
 
 onMounted(async () => {
@@ -206,12 +266,81 @@ onUnmounted(() => {
 }
 
 .header {
+  position: relative;
+
   height: 82px;
   background: #1E1E1E;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   padding: 0 30px;
+}
+
+.header-divider {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.session-title {
+  background: #121212;
+  padding: 10px 24px;
+  border-radius: 26px;
+}
+
+.share-wrapper {
+  position: relative;
+}
+
+.share-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.share-btn i {
+  font-size: 28px;
+}
+
+.copy-tooltip {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: #565656;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 16px;
+  white-space: nowrap;
+  font-size: 14px;
 }
 
 .logo {
@@ -271,16 +400,36 @@ onUnmounted(() => {
   border-bottom: 1px solid #1E1E1E;
 }
 
-.leave-btn {
+.leave-wrapper {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  background: #565656;
+  top: 30px;
+  left: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.leave-btn {
+  width: 58px;
+  height: 58px;
   border: none;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 20px;
+  border-radius: 50%;
+  background: #565656;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
+}
+
+.leave-btn i {
+  color: white;
+  font-size: 30px;
+}
+
+.leave-label {
+  color: white;
+  font-size: 14px;
 }
 
 .sidebar {

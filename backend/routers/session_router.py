@@ -8,7 +8,8 @@ from services.session_service import (
     save_vote,
     reveal_votes,
     reset_votes,
-    get_session_state
+    get_session_state,
+    leave_session_service
 )
 from websocket.connection_manager import ConnectionManager
 
@@ -41,6 +42,14 @@ def get_session(code: str):
         "admin": sessions[code]["admin"]
     }
 
+@router.post("/session/leave")
+def leave_session(data: JoinSessionRequest):
+
+    leave_session_service(data.code, data.name)
+
+    return {
+        "message": "Saiu da sessão"
+    }
 
 # =========================
 # WebSocket
