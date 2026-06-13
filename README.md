@@ -128,6 +128,20 @@ npm run dev
 
 # 💻 Layouts
 
+- Home:
+<img src="frontend\vue-project\src\assets\img\layouts\home-view.png" width="100%">
+
+- Ao criar uma sessão:
+<img src="frontend\vue-project\src\assets\img\layouts\session-code.png" width="100%">
+
+- Exibição da sessão para o usuário admin (criador da sessão):
+<img src="frontend\vue-project\src\assets\img\layouts\session-admin.png" width="100%">
+
+- Ao entrar em uma sessão já existente:
+<img src="frontend\vue-project\src\assets\img\layouts\session-username.png" width="100%">
+
+- Visualização da sessão para usuários comuns:
+<img src="frontend\vue-project\src\assets\img\layouts\session-view.png" width="100%">
 
 
 # 📋 Funcionalidades
