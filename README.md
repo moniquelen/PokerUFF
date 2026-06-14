@@ -3,13 +3,13 @@
 <h1>PokerUFF</h1>
 </div>
 
-Sistema de Planning Poker desenvolvido como trabalho da disciplina de **Redes de Computadores** do curso de **Sistemas de Informação da Universidade Federal Fluminense (UFF)**.
+Sistema de Planning Poker desenvolvido como trabalho da disciplina de **Redes de Computadores** do curso de **Sistemas de Informação da Universidade Federal Fluminense**.
 
-O PokerUFF permite que equipes participem de sessões de Planning Poker em tempo real, possibilitando a estimativa colaborativa de tarefas através da votação dos participantes. O sistema conta com comunicação em tempo real utilizando WebSockets, permitindo que os votos, entrada e saída de participantes e demais alterações da sessão sejam sincronizados instantaneamente entre todos os usuários conectados.
+O PokerUFF permite que equipes participem de sessões de Planning Poker em tempo real, possibilitando a estimativa colaborativa de tarefas através da votação dos participantes. O sistema conta com comunicação em tempo real utilizando WebSockets, permitindo que os votos sejam sincronizados instantaneamente entre todos os usuários conectados.
 
 As sessões possuem um administrador responsável pela criação da sala e pelo gerenciamento da votação, incluindo revelar os votos, reiniciar a rodada e excluir a sessão.
 
-Integrantes do grupo:
+**👥 Integrantes do grupo:**
 - Monique Elen Santos de Souza
 - Luiz Miguel Viana Barbosa
 - João Victor Labre Machado
@@ -36,7 +36,7 @@ Integrantes do grupo:
 
 ---
 
-## Pré-requisitos
+## ⚙️ Pré-requisitos
 
 - Python 3.11+
 - Node.js ^20.19.0 ou >=22.12.0
@@ -148,14 +148,20 @@ npm run dev
 - Ao criar uma sessão:
 <img src="frontend\vue-project\src\assets\img\layouts\session-code.png" width="100%">
 
-- Exibição da sessão para o usuário admin (criador da sessão):
+- Exibição da sessão para usuário admin (criador da sessão):
 <img src="frontend\vue-project\src\assets\img\layouts\session-admin.png" width="100%">
+
+- Ao exibir o resultado da votação:
+<img src="frontend\vue-project\src\assets\img\layouts\session-result.png" width="100%">
 
 - Ao entrar em uma sessão já existente:
 <img src="frontend\vue-project\src\assets\img\layouts\session-username.png" width="100%">
 
-- Visualização da sessão para usuários comuns:
+- Visualização da sessão para usuários comuns (sem a sidebar de admin):
 <img src="frontend\vue-project\src\assets\img\layouts\session-view.png" width="100%">
+
+- Exemplo de funcionamento:
+<img src="frontend\vue-project\src\assets\img\layouts\funcionamento-websockets.gif" width="100%">
 
 
 # 📋 Funcionalidades
@@ -167,4 +173,3 @@ npm run dev
 * Revelação dos votos pelo administrador;
 * Reinício da rodada de votação;
 * Exclusão da sessão pelo administrador;
-* Entrada e saída dinâmica de participantes;
