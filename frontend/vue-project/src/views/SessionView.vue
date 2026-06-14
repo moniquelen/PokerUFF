@@ -58,20 +58,64 @@
           Sair
         </span>
       </div>
-      <h1 class="title">Clique em um cartão para votar</h1>
-      <div class="cards">
+      <h1
+        v-if="!state.revealed"
+        class="title"
+      >
+        Clique em um cartão para votar
+      </h1>
+      <div
+        v-if="!state.revealed"
+        class="cards"
+      >
         <div
           v-for="value in cards"
           :key="value"
           class="card"
+          :class="{ 'card-selected': selectedCard === value }"
           @click="vote(value)"
         >
           {{ value }}
         </div>
       </div>
 
+      <div
+        v-else
+        class="results-panel"
+      >
+        <h1 class="results-title">Resultado da votação</h1>
+        <div class="results-stats">
+          <img
+            src="@/assets/img/logo-white.svg"
+            alt=""
+            class="results-icon"
+          />
+          Média: {{ voteAverage }}  •  Mediana: {{ voteMedian }}
+        </div>
+      </div>
+
+      <Divider class="content-divider" />
+
       <div class="participants">
-        <h2>Participantes</h2>
+        <div class="section-header">
+          <h2 class="section-title">
+            <img
+              src="@/assets/img/user-icon.svg"
+              alt=""
+              class="section-icon"
+            />
+            Participantes
+          </h2>
+
+          <h2 class="section-title story-points-title">
+            <img
+              src="@/assets/img/story-point-icon.svg"
+              alt=""
+              class="section-icon"
+            />
+            Story Points
+          </h2>
+        </div>
         <div
           v-for="p in state.participants"
           :key="p"
@@ -100,7 +144,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Divider from '@/components/Divider.vue'
 import SessionCodeModal from '@/components/SessionCodeModal.vue'
@@ -126,11 +170,48 @@ const sessionName = ref('Sessão')
 const isAdmin = ref(false)
 
 const cards = [1, 2, 3, 5, 8, 13]
+const selectedCard = ref(null)
 
 const showCodeModal = ref(false)
 const sessionCode = ref('')
 const showUserNameModal = ref(false)
 const copied = ref(false)
+
+function getVoteValues() {
+  return Object.values(state.value.votes ?? {})
+    .filter((value) => typeof value === 'number')
+}
+
+function formatNumber(value) {
+  return Number.isInteger(value)
+    ? String(value)
+    : value.toFixed(1).replace('.', ',')
+}
+
+function calculateAverage(values) {
+  if (!values.length) return '-'
+
+  const total = values.reduce((sum, value) => sum + value, 0)
+  return formatNumber(total / values.length)
+}
+
+function calculateMedian(values) {
+  if (!values.length) return '-'
+
+  const sortedValues = [...values].sort((a, b) => a - b)
+  const middleIndex = Math.floor(sortedValues.length / 2)
+
+  if (sortedValues.length % 2 === 1) {
+    return formatNumber(sortedValues[middleIndex])
+  }
+
+  return formatNumber(
+    (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2
+  )
+}
+
+const voteAverage = computed(() => calculateAverage(getVoteValues()))
+const voteMedian = computed(() => calculateMedian(getVoteValues()))
 
 async function copyCode() {
   await navigator.clipboard.writeText(SESSION_CODE)
@@ -157,6 +238,10 @@ function connect() {
 
       sessionName.value = msg.data.name
       isAdmin.value = username.value === msg.data.admin
+
+      if (!msg.data.revealed && Object.keys(msg.data.votes ?? {}).length === 0) {
+        selectedCard.value = null
+      }
     }
   }
 
@@ -206,6 +291,8 @@ async function setUsername(name) {
 
 function vote(value) {
   if (!ws.value) return
+
+  selectedCard.value = value
 
   ws.value.send(JSON.stringify({
     type: 'vote',
@@ -270,7 +357,10 @@ async function resetVotes() {
 
   if (!res.ok) {
     alert('Não foi possível reiniciar a votação')
+    return
   }
+
+  selectedCard.value = null
 }
 
 async function deleteSession() {
@@ -454,6 +544,69 @@ onUnmounted(() => {
   margin-bottom: 40px;
 }
 
+.results-panel {
+  max-width: 600px;
+  margin: 0 auto 60px;
+  text-align: center;
+}
+
+.results-title {
+  font-size: 28px;
+  margin-bottom: 18px;
+}
+
+.results-stats {
+  background: #1E1E1E;
+  border-radius: 18px;
+  padding: 18px 24px;
+  font-size: 18px;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.content-divider {
+  width: min(420px, 45%);
+  margin: 60px auto 60px;
+}
+
+.results-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 22px;
+}
+
+.story-points-title {
+  min-width: 160px;
+  justify-content: flex-end;
+}
+
+.section-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .cards {
   display: flex;
   justify-content: center;
@@ -472,6 +625,12 @@ onUnmounted(() => {
   font-size: 40px;
   cursor: pointer;
   transition: 0.2s;
+}
+
+.card-selected {
+  outline: 1px solid #ffffff;
+  background: #858585;
+  transform: scale(1.08);
 }
 
 .card:hover {
